@@ -18,8 +18,8 @@ namespace FloodRescueSystem.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var allroles = _context.Roles.ToList();
-            return Ok(allroles);
+            var roles = _context.Roles.ToList();
+            return Ok(roles);
         }
     }
 }
