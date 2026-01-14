@@ -1,0 +1,6 @@
+@FloodRescueSystem_HostAddress = http://localhost:5211
+
+GET {{FloodRescueSystem_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
