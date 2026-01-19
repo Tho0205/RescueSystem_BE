@@ -1,69 +1,60 @@
 ﻿
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RescueSyetem_BE.Models;
 using RescueSystem_BE.Dtos.Users;
+using RescueSystem_BE.Services.Users;
 
 namespace RescueSystem_BE.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "ADMIN")]
     public class UsersController : ControllerBase
     {
-        private readonly RescueSystemContext _context;
+        private readonly IUsersService _usersService;
 
-        public UsersController(RescueSystemContext context)
+        public UsersController(IUsersService usersService)
         {
-            _context = context;
+            _usersService = usersService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers([FromQuery] string? roleCode = null)
         {
-            var users = await _context.Users
-                .Include(u => u.Role)
-                .Select(u => new UserDto
-                {
-                    UserID = u.UserId,
-                    Username = u.Username,
-                    FullName = u.FullName,
-                    Phone = u.Phone,
-                    RoleName = u.Role.RoleName,
-                    IsActive = u.IsActive
-                })
-                .ToListAsync();
-
+            var users = await _usersService.GetUsersAsync(roleCode);
             return Ok(users);
         }
 
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<UserDto>> GetUser(Guid id)
         {
-            var user = await _context.Users
-                .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.UserId == id);
-
+            var user = await _usersService.GetUserByIdAsync(id);
             if (user == null) return NotFound();
-
-            var dto = new UserDto
-            {
-                UserID = user.UserId,
-                Username = user.Username,
-                FullName = user.FullName,
-                Phone = user.Phone,
-                RoleName = user.Role.RoleName,
-                IsActive = user.IsActive
-            };
-
-            return Ok(dto);
+            return Ok(user);
         }
 
         [HttpPost]
-        [Authorize(Roles = "ADMIN")]
         public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto dto)
         {
-            return Ok("ADMIN only");
+            var (ok, error, user) = await _usersService.CreateUserAsync(dto);
+            if (!ok) return BadRequest(new { message = error });
+            return CreatedAtAction(nameof(GetUser), new { id = user!.UserID }, user);
+        }
+
+        [HttpPut("{id:guid}")]
+        public async Task<ActionResult<UserDto>> UpdateUser(Guid id, [FromBody] UpdateUserDto dto)
+        {
+            var (ok, error, user) = await _usersService.UpdateUserAsync(id, dto);
+            if (!ok) return error == "User not found" ? NotFound(new { message = error }) : BadRequest(new { message = error });
+            return Ok(user);
+        }
+
+        [HttpPatch("{id:guid}/deactivate")]
+        public async Task<IActionResult> DeactivateUser(Guid id)
+        {
+            var (ok, error) = await _usersService.DeactivateUserAsync(id);
+            if (!ok) return NotFound(new { message = error });
+            return NoContent();
         }
     }
 }

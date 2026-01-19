@@ -7,5 +7,6 @@ namespace RescueSystem_BE.Services.Auth
     {
         Task<LoginResponseDto?> AuthenticateAsync(LoginRequestDto request);
         string GenerateJwtToken(User user);
+        string HashPassword(string password);
     }
 }

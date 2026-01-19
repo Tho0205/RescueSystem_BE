@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using RescueSyetem_BE.Models;
 using RescueSystem_BE.Services.Auth;  // ✅ THÊM
+using RescueSystem_BE.Services.Users;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -65,6 +66,7 @@ builder.Services.AddAuthorization();
 
 // Services ✅ Namespace đúng
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUsersService, UsersService>();
 
 var app = builder.Build();
 

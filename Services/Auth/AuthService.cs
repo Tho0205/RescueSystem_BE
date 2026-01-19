@@ -1,5 +1,4 @@
-﻿using BCrypt.Net;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using RescueSyetem_BE.Models;
 using RescueSystem_BE.Dtos.Auth;
@@ -35,7 +34,7 @@ namespace RescueSystem_BE.Services.Auth
             {
                 Token = token,
                 Username = user.Username,
-                Role = user.Role.RoleName ?? ""
+                Role = user.Role.RoleCode ?? "" // Return RoleCode for consistency
             };
         }
 
@@ -45,7 +44,7 @@ namespace RescueSystem_BE.Services.Auth
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role.RoleName ?? ""),
+                new Claim(ClaimTypes.Role, user.Role.RoleCode ?? ""), // Use RoleCode instead of RoleName for authorization
                 new Claim("sub", user.UserId.ToString())
             };
 
@@ -64,14 +63,14 @@ namespace RescueSystem_BE.Services.Auth
 
         private bool VerifyPassword(string password, string hashedPassword)
         {
-            //return BCrypt.Net.BCrypt.Verify(password, hashedPassword);
             return password == hashedPassword;
         }
 
         // Helper: Hash password (dùng khi create user)
         public string HashPassword(string password)
         {
-            return BCrypt.Net.BCrypt.HashPassword(password);
+            // Plain text as requested (NOT recommended for production)
+            return password;
         }
     }
 }
